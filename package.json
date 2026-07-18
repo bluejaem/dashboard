@@ -1,0 +1,28 @@
+{
+  "name": "dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "homepage": "https://bluejaem.github.io/dashboard",
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.3.0",
+    "chart.js": "^4.0.0",
+    "react-chartjs-2": "^5.0.0",
+    "react-scripts": "^5.0.0",
+    "gh-pages": "^5.0.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.0.0",
+    "postcss": "^8.0.0",
+    "autoprefixer": "^10.0.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  }
+}
