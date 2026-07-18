@@ -11,12 +11,12 @@ const schedule = [
 ];
 
 const categoryColors = {
-  Bem-estar: 'bg-blue-500/15 text-blue-200',
+  'Bem-estar': 'bg-blue-500/15 text-blue-200',
   Cursos: 'bg-violet-500/15 text-violet-200',
   Estudo: 'bg-cyan-500/15 text-cyan-200',
   Pausa: 'bg-amber-500/15 text-amber-200',
   Projetos: 'bg-fuchsia-500/15 text-fuchsia-200',
-  Certificação: 'bg-emerald-500/15 text-emerald-200',
+  'Certificação': 'bg-emerald-500/15 text-emerald-200',
   Livros: 'bg-sky-500/15 text-sky-200',
   Planejamento: 'bg-slate-500/15 text-slate-200'
 };
