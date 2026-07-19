@@ -1,6 +1,6 @@
 export default function Card({ title, value, subtext, progress, badge, children }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-surface p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+    <div className="rounded-3xl border border-white/10 bg-theme-surface p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_30px_80px_rgba(58,155,220,0.15)]">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm uppercase tracking-[0.18em] text-slate-400">{title}</p>

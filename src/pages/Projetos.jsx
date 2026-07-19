@@ -1,20 +1,30 @@
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useMemo } from 'react';
 
+const statuses = ['Planejado', 'Em andamento', 'Concluído'];
 const blankProject = {
   project: '',
   description: '',
   tech: '',
   difficulty: '',
   hours: '',
-  status: '',
+  status: 'Planejado',
   github: '',
   demo: '',
   date: '',
   insight: ''
 };
 
-export default function GitHub() {
+export default function Projetos() {
   const [repositories, setRepositories] = useLocalStorage('githubProjects', []);
+
+  const summary = useMemo(() => {
+    const total = repositories.length;
+    const planned = repositories.filter((item) => item.status === 'Planejado').length;
+    const active = repositories.filter((item) => item.status === 'Em andamento').length;
+    const completed = repositories.filter((item) => item.status === 'Concluído').length;
+    return { total, planned, active, completed };
+  }, [repositories]);
 
   const addProject = () => setRepositories((prev) => [...prev, { ...blankProject }]);
   const updateProject = (index, key, value) => {
@@ -27,15 +37,33 @@ export default function GitHub() {
       <div className="rounded-3xl border border-white/10 bg-surface p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.18em] text-slate-400">GitHub</p>
-            <h2 className="mt-2 text-2xl font-semibold text-white">Meta de 50 projetos</h2>
+            <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Projetos</p>
+            <h2 className="mt-2 text-2xl font-semibold text-white">Portfólio e entregas em andamento</h2>
           </div>
           <button type="button" onClick={addProject} className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-background transition hover:bg-blue-400">
             Adicionar projeto
           </button>
         </div>
 
-        <div className="mt-6 grid gap-4">
+        <div className="mt-6 grid gap-4 sm:grid-cols-4">
+          <div className="rounded-3xl bg-[#111827] p-4 text-slate-300">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Total</p>
+            <p className="mt-3 text-3xl font-semibold text-white">{summary.total}</p>
+          </div>
+          <div className="rounded-3xl bg-[#111827] p-4 text-slate-300">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Planejados</p>
+            <p className="mt-3 text-3xl font-semibold text-white">{summary.planned}</p>
+          </div>
+          <div className="rounded-3xl bg-[#111827] p-4 text-slate-300">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Em andamento</p>
+            <p className="mt-3 text-3xl font-semibold text-white">{summary.active}</p>
+          </div>
+          <div className="rounded-3xl bg-[#111827] p-4 text-slate-300">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Concluídos</p>
+            <p className="mt-3 text-3xl font-semibold text-white">{summary.completed}</p>
+          </div>
+        </div>
+        <div className="grid gap-4">
           {repositories.length === 0 ? (
             <div className="rounded-3xl border border-white/10 bg-[#111827] p-6 text-slate-300">
               Nenhum projeto cadastrado. Adicione um projeto para acompanhar sua evolução.
@@ -60,7 +88,7 @@ export default function GitHub() {
                   placeholder="Descrição"
                   className="mt-4 w-full rounded-3xl border border-white/10 bg-background px-4 py-3 text-sm text-slate-200 outline-none"
                 />
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
                   <input
                     value={item.tech}
                     onChange={(event) => updateProject(index, 'tech', event.target.value)}
@@ -73,6 +101,15 @@ export default function GitHub() {
                     placeholder="Dificuldade"
                     className="rounded-3xl bg-background p-4 text-sm text-slate-200 outline-none border border-white/10"
                   />
+                  <select
+                    value={item.status}
+                    onChange={(event) => updateProject(index, 'status', event.target.value)}
+                    className="rounded-3xl bg-background p-4 text-sm text-slate-200 outline-none border border-white/10"
+                  >
+                    {statuses.map((status) => (
+                      <option key={status} value={status}>{status}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <input
@@ -92,7 +129,7 @@ export default function GitHub() {
                   <input
                     value={item.github}
                     onChange={(event) => updateProject(index, 'github', event.target.value)}
-                    placeholder="Link GitHub"
+                    placeholder="Link do projeto"
                     className="rounded-3xl bg-background p-4 text-sm text-slate-200 outline-none border border-white/10"
                   />
                   <input

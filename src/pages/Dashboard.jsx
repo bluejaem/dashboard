@@ -17,34 +17,75 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Tooltip, Legend, Filler);
 
 const initialDashboard = {
+  userName: 'Seu nome',
+  objective: 'Acompanhar estudos, projetos e metas',
   hoursStudied: 0,
-  weeklyGoal: 20,
-  booksRead: 0,
-  githubProjects: 0,
-  certificationsCompleted: 0,
-  streakDays: 0,
+  productivity: 0,
+  studyProgress: 0,
+  activeProjects: 0,
+  balance: 0,
+  weeklyProductivity: [0, 0, 0, 0, 0, 0, 0],
+  studyHours: [0, 0, 0, 0, 0, 0, 0],
+  goalProgress: [0, 0, 0, 0, 0, 0],
   weeklyChart: [0, 0, 0, 0, 0, 0, 0],
   monthlyChart: [0, 0, 0, 0, 0, 0],
   routineScore: 0
 };
 
-const monthLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'];
 const weekLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
+const monthLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'];
 
 export default function Dashboard() {
   const [dashboard, setDashboard] = useLocalStorage('dashboardData', initialDashboard);
+  const [tasks] = useLocalStorage('tasksData', []);
+  const [goals] = useLocalStorage('metas', []);
+  const [projects] = useLocalStorage('githubProjects', []);
+  const [financeEntries] = useLocalStorage('financeEntries', []);
+  const [schedule] = useLocalStorage('agendaDiaria', []);
 
-  const progressPercent = useMemo(() => {
-    if (!dashboard.weeklyGoal) return 0;
-    return Math.min(100, Math.round((dashboard.hoursStudied / dashboard.weeklyGoal) * 100));
-  }, [dashboard.hoursStudied, dashboard.weeklyGoal]);
+  const summary = useMemo(() => {
+    const pending = tasks.filter((task) => task.status === 'Pendente').length;
+    const completed = tasks.filter((task) => task.status === 'Concluída').length;
+    const appointments = schedule.filter((item) => item.time || item.task).length;
+    const inProgressGoals = goals.filter((goal) => goal.status === 'Em andamento').length;
+    return { pending, completed, appointments, inProgressGoals };
+  }, [tasks, schedule, goals]);
 
-  const weeklyData = {
+  const financialBalance = useMemo(() => {
+    return financeEntries.reduce((sum, entry) => {
+      const amount = Number(entry.amount) || 0;
+      return entry.type === 'Despesa' ? sum - amount : sum + amount;
+    }, dashboard.balance);
+  }, [financeEntries, dashboard.balance]);
+
+  const averageGoalProgress = useMemo(() => {
+    if (!goals.length) return dashboard.studyProgress;
+    const total = goals.reduce((sum, goal) => sum + (Number(goal.percent) || 0), 0);
+    return Math.round(total / goals.length);
+  }, [goals, dashboard.studyProgress]);
+
+  const weeklyProductivityData = {
     labels: weekLabels,
     datasets: [
       {
-        label: 'Horas estudadas',
-        data: dashboard.weeklyChart,
+        label: 'Produtividade semanal',
+        data: dashboard.weeklyProductivity,
+        borderColor: '#10B981',
+        backgroundColor: 'rgba(16, 185, 129, 0.18)',
+        tension: 0.35,
+        fill: true,
+        pointRadius: 4,
+        pointBackgroundColor: '#10B981'
+      }
+    ]
+  };
+
+  const studyHoursData = {
+    labels: weekLabels,
+    datasets: [
+      {
+        label: 'Horas de estudo',
+        data: dashboard.studyHours,
         borderColor: '#3A9BDC',
         backgroundColor: 'rgba(58, 155, 220, 0.18)',
         tension: 0.35,
@@ -55,13 +96,13 @@ export default function Dashboard() {
     ]
   };
 
-  const monthlyData = {
+  const goalsData = {
     labels: monthLabels,
     datasets: [
       {
-        label: 'Horas totais por mês',
-        data: dashboard.monthlyChart,
-        backgroundColor: '#3A9BDC',
+        label: 'Progresso de metas',
+        data: dashboard.goalProgress,
+        backgroundColor: '#F59E0B',
         borderRadius: 10,
         barThickness: 22
       }
@@ -71,11 +112,11 @@ export default function Dashboard() {
   const updateValue = (key, value) => {
     setDashboard((prev) => ({
       ...prev,
-      [key]: Number(value) || 0
+      [key]: Number(value) || value
     }));
   };
 
-  const updateArray = (key, index, value) => {
+  const updateChart = (key, index, value) => {
     setDashboard((prev) => ({
       ...prev,
       [key]: prev[key].map((item, idx) => (idx === index ? Number(value) || 0 : item))
@@ -84,90 +125,67 @@ export default function Dashboard() {
 
   return (
     <section className="space-y-6">
-      <div className="grid gap-4 xl:grid-cols-[repeat(3,minmax(0,1fr))] lg:grid-cols-2">
-        <Card title="Horas Estudadas" value={`${dashboard.hoursStudied}h`} progress={progressPercent} subtext="Total acumulado no mês" badge="Semanal">
-          <div className="mt-4 space-y-3 text-sm text-slate-300">
-            <label className="block">
-              <span className="text-slate-400">Horas estudadas</span>
-              <input
-                type="number"
-                value={dashboard.hoursStudied}
-                onChange={(event) => updateValue('hoursStudied', event.target.value)}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111827] px-3 py-2 text-white outline-none focus:border-accent"
-              />
-            </label>
-            <label className="block">
-              <span className="text-slate-400">Meta semanal</span>
-              <input
-                type="number"
-                value={dashboard.weeklyGoal}
-                onChange={(event) => updateValue('weeklyGoal', event.target.value)}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111827] px-3 py-2 text-white outline-none focus:border-accent"
-              />
-            </label>
+      <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
+        <div className="rounded-3xl border border-white/10 bg-surface p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+          <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Boas-vindas</p>
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-semibold text-white">Olá, {dashboard.userName}</h1>
+              <p className="mt-2 text-slate-300">{dashboard.objective}</p>
+            </div>
+            <div className="space-y-3 rounded-3xl border border-white/10 bg-[#111827] p-4 text-slate-300">
+              <label className="block">
+                <span className="text-slate-400 text-xs uppercase tracking-[0.18em]">Nome</span>
+                <input
+                  value={dashboard.userName}
+                  onChange={(event) => updateValue('userName', event.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-[#0f172a] px-3 py-2 text-white outline-none"
+                />
+              </label>
+              <label className="block">
+                <span className="text-slate-400 text-xs uppercase tracking-[0.18em]">Objetivo atual</span>
+                <input
+                  value={dashboard.objective}
+                  onChange={(event) => updateValue('objective', event.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-[#0f172a] px-3 py-2 text-white outline-none"
+                />
+              </label>
+            </div>
           </div>
-        </Card>
+        </div>
 
-        <Card title="Livros Lidos" value={`${dashboard.booksRead}/12`} progress={dashboard.booksRead ? Math.min(100, Math.round((dashboard.booksRead / 12) * 100)) : 0} subtext="Avanço do plano de leitura">
-          <label className="block text-sm text-slate-300">
-            <span className="text-slate-400">Livros lidos</span>
-            <input
-              type="number"
-              value={dashboard.booksRead}
-              onChange={(event) => updateValue('booksRead', event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111827] px-3 py-2 text-white outline-none focus:border-accent"
-            />
-          </label>
-        </Card>
-
-        <Card title="Projetos GitHub" value={`${dashboard.githubProjects}/50`} progress={dashboard.githubProjects ? Math.min(100, Math.round((dashboard.githubProjects / 50) * 100)) : 0} subtext="Repositórios ativos e em desenvolvimento">
-          <label className="block text-sm text-slate-300">
-            <span className="text-slate-400">Projetos concluídos</span>
-            <input
-              type="number"
-              value={dashboard.githubProjects}
-              onChange={(event) => updateValue('githubProjects', event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111827] px-3 py-2 text-white outline-none focus:border-accent"
-            />
-          </label>
-        </Card>
-
-        <Card title="Certificações" value={`${dashboard.certificationsCompleted} Concluídas`} subtext="Foco em formação continuada">
-          <label className="block text-sm text-slate-300">
-            <span className="text-slate-400">Certificações concluídas</span>
-            <input
-              type="number"
-              value={dashboard.certificationsCompleted}
-              onChange={(event) => updateValue('certificationsCompleted', event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111827] px-3 py-2 text-white outline-none focus:border-accent"
-            />
-          </label>
-        </Card>
-
-        <Card title="Dias Seguidos" value={`${dashboard.streakDays} Dias`} progress={Math.min(100, dashboard.streakDays)} subtext="Consistência de estudo e entregas">
-          <label className="block text-sm text-slate-300">
-            <span className="text-slate-400">Dias seguidos</span>
-            <input
-              type="number"
-              value={dashboard.streakDays}
-              onChange={(event) => updateValue('streakDays', event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111827] px-3 py-2 text-white outline-none focus:border-accent"
-            />
-          </label>
-        </Card>
+        <div className="grid gap-4">
+          <Card title="Tarefas pendentes" value={summary.pending} badge="Resumo do dia" />
+          <Card title="Tarefas concluídas" value={summary.completed} badge="Resumo do dia" />
+          <Card title="Compromissos" value={summary.appointments} badge="Resumo do dia" />
+          <Card title="Metas em andamento" value={summary.inProgressGoals} badge="Resumo do dia" />
+        </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <div className="rounded-3xl border border-white/10 bg-surface p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+      <div className="grid gap-4 xl:grid-cols-4">
+        <Card title="Foco do dia" value={`${dashboard.productivity}%`} progress={dashboard.productivity} subtext="Mantenha o ritmo" badge="Alta prioridade" />
+        <Card title="Meta urgente" value={`${averageGoalProgress}%`} progress={averageGoalProgress} subtext="Progresso médio" badge="Estudos" />
+        <Card title="Projetos ativos" value={projects.length} subtext={`${summary.pending} tarefas pendentes`} badge="Workflow" />
+        <Card title="Saldo planejado" value={`R$ ${financialBalance.toFixed(2)}`} subtext="Fluxo disponível" badge="Financeiro" />
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-4">
+        <Card title="Produtividade" value={`${dashboard.productivity}%`} progress={dashboard.productivity} subtext="Indicador de foco" />
+        <Card title="Progresso dos estudos" value={`${dashboard.studyProgress}%`} progress={dashboard.studyProgress} subtext="Meta de estudo" />
+        <Card title="Projetos ativos" value={projects.length} subtext="Itens em andamento" />
+        <Card title="Saldo financeiro" value={`R$ ${financialBalance.toFixed(2)}`} subtext="Fluxo pessoal" />
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-3">
+        <div className="rounded-3xl border border-white/10 bg-surface p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)] xl:col-span-2">
           <div className="flex items-center justify-between gap-3 mb-6">
             <div>
-              <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Visão semanal</p>
-              <h2 className="mt-2 text-xl font-semibold text-white">Atividade de estudo</h2>
+              <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Produtividade</p>
+              <h2 className="mt-2 text-xl font-semibold text-white">Evolução semanal</h2>
             </div>
-            <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-300">Última semana</span>
           </div>
           <Line
-            data={weeklyData}
+            data={weeklyProductivityData}
             options={{
               responsive: true,
               plugins: {
@@ -181,13 +199,13 @@ export default function Dashboard() {
             }}
           />
           <div className="mt-6 grid gap-3 sm:grid-cols-7">
-            {dashboard.weeklyChart.map((value, index) => (
+            {dashboard.weeklyProductivity.map((value, index) => (
               <label key={index} className="text-center text-xs text-slate-300">
                 <span className="block mb-2">{weekLabels[index]}</span>
                 <input
                   type="number"
                   value={value}
-                  onChange={(event) => updateArray('weeklyChart', index, event.target.value)}
+                  onChange={(event) => updateChart('weeklyProductivity', index, event.target.value)}
                   className="w-full rounded-2xl border border-white/10 bg-[#111827] px-2 py-1 text-white outline-none"
                 />
               </label>
@@ -198,13 +216,12 @@ export default function Dashboard() {
         <div className="rounded-3xl border border-white/10 bg-surface p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
           <div className="flex items-center justify-between gap-3 mb-6">
             <div>
-              <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Visão mensal</p>
-              <h2 className="mt-2 text-xl font-semibold text-white">Ritmo de progresso</h2>
+              <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Cronograma</p>
+              <h2 className="mt-2 text-xl font-semibold text-white">Ritmo de estudos</h2>
             </div>
-            <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-300">Últimos 6 meses</span>
           </div>
           <Bar
-            data={monthlyData}
+            data={studyHoursData}
             options={{
               responsive: true,
               plugins: {
@@ -217,14 +234,14 @@ export default function Dashboard() {
               }
             }}
           />
-          <div className="mt-6 grid gap-3 sm:grid-cols-6">
-            {dashboard.monthlyChart.map((value, index) => (
+          <div className="mt-6 grid gap-3 sm:grid-cols-7">
+            {dashboard.studyHours.map((value, index) => (
               <label key={index} className="text-center text-xs text-slate-300">
-                <span className="block mb-2">{monthLabels[index]}</span>
+                <span className="block mb-2">{weekLabels[index]}</span>
                 <input
                   type="number"
                   value={value}
-                  onChange={(event) => updateArray('monthlyChart', index, event.target.value)}
+                  onChange={(event) => updateChart('studyHours', index, event.target.value)}
                   className="w-full rounded-2xl border border-white/10 bg-[#111827] px-2 py-1 text-white outline-none"
                 />
               </label>
@@ -234,38 +251,71 @@ export default function Dashboard() {
       </div>
 
       <div className="rounded-3xl border border-white/10 bg-surface p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center justify-between gap-3 mb-6">
           <div>
-            <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Progresso geral</p>
-            <h2 className="mt-2 text-xl font-semibold text-white">Jornada de produtividade</h2>
+            <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Metas</p>
+            <h2 className="mt-2 text-xl font-semibold text-white">Progresso das metas</h2>
           </div>
-          <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-300">Meta 100%</span>
         </div>
-        <div className="mt-6 grid gap-4 sm:grid-cols-[1fr_120px]">
-          <div className="space-y-4">
-            <div className="rounded-3xl bg-[#111827] p-4">
-              <p className="text-sm text-slate-300">Saúde da rotina</p>
+        <Bar
+          data={goalsData}
+          options={{
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: { backgroundColor: '#111827', titleColor: '#fff', bodyColor: '#e5e7eb' }
+            },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: '#cbd5e1' } },
+              y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#cbd5e1' } }
+            }
+          }}
+        />
+        <div className="mt-6 grid gap-3 sm:grid-cols-6">
+          {dashboard.goalProgress.map((value, index) => (
+            <label key={index} className="text-center text-xs text-slate-300">
+              <span className="block mb-2">{monthLabels[index]}</span>
               <input
                 type="number"
-                value={dashboard.routineScore}
-                min={0}
-                max={100}
-                onChange={(event) => updateValue('routineScore', event.target.value)}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-[#0f172a] px-3 py-2 text-white outline-none focus:border-accent"
+                value={value}
+                onChange={(event) => updateChart('goalProgress', index, event.target.value)}
+                className="w-full rounded-2xl border border-white/10 bg-[#111827] px-2 py-1 text-white outline-none"
               />
-            </div>
-            <div className="rounded-3xl bg-[#111827] p-4">
-              <p className="text-sm text-slate-300">Progresso geral</p>
-              <p className="mt-2 text-3xl font-semibold text-white">{dashboard.routineScore}%</p>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[1fr_300px]">
+        <div className="rounded-3xl border border-white/10 bg-surface p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <div>
+              <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Resumo rápido</p>
+              <h2 className="mt-2 text-xl font-semibold text-white">Análise da semana</h2>
             </div>
           </div>
-          <div className="rounded-3xl bg-[#111827] p-5">
-            <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Consistência</p>
-            <div className="mt-4 h-4 w-full overflow-hidden rounded-full bg-white/5">
-              <div className="h-full rounded-full bg-accent transition-all duration-700" style={{ width: `${dashboard.routineScore}%` }} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-3xl bg-[#111827] p-4 text-slate-300">
+              <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Produtividade média</p>
+              <p className="mt-3 text-3xl font-semibold text-white">{dashboard.productivity}%</p>
             </div>
-            <p className="mt-3 text-sm text-slate-300">Atualize seu score e acompanhe o progresso.</p>
+            <div className="rounded-3xl bg-[#111827] p-4 text-slate-300">
+              <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Meta de estudos</p>
+              <p className="mt-3 text-3xl font-semibold text-white">{averageGoalProgress}%</p>
+            </div>
           </div>
+          <div className="mt-4 rounded-3xl bg-[#111827] p-4 text-slate-300">
+            <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Projetos em progresso</p>
+            <p className="mt-3 text-3xl font-semibold text-white">{projects.length}</p>
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-white/10 bg-[#111827] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+          <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Progresso de metas</p>
+          <div className="mt-5 h-4 w-full overflow-hidden rounded-full bg-white/5">
+            <div className="h-full rounded-full bg-accent transition-all duration-700" style={{ width: `${averageGoalProgress}%` }} />
+          </div>
+          <p className="mt-3 text-sm text-slate-300">Média de progresso em todas as metas cadastradas.</p>
         </div>
       </div>
     </section>
