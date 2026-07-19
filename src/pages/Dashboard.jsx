@@ -64,6 +64,8 @@ export default function Dashboard() {
     return Math.round(total / goals.length);
   }, [goals, dashboard.studyProgress]);
 
+  const completedGoals = useMemo(() => goals.filter((goal) => goal.status === 'Concluída' || Number(goal.percent) >= 100).length, [goals]);
+
   const weeklyProductivityData = {
     labels: weekLabels,
     datasets: [
@@ -152,13 +154,18 @@ export default function Dashboard() {
               </label>
             </div>
           </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <Card title="Tudo pendente" value={summary.pending} subtext="Tarefas ainda em aberto" badge="Prioridade" />
+            <Card title="Cumprido" value={summary.completed} subtext="Tarefas concluídas" badge="Concluído" />
+            <Card title="Metas cumpridas" value={completedGoals} subtext="Metas já finalizadas" badge="Meta" />
+          </div>
         </div>
 
         <div className="grid gap-4">
-          <Card title="Tarefas pendentes" value={summary.pending} badge="Resumo do dia" />
-          <Card title="Tarefas concluídas" value={summary.completed} badge="Resumo do dia" />
-          <Card title="Compromissos" value={summary.appointments} badge="Resumo do dia" />
-          <Card title="Metas em andamento" value={summary.inProgressGoals} badge="Resumo do dia" />
+          <Card title="Metas em andamento" value={summary.inProgressGoals} subtext="Objetivos em progresso" badge="Foco" />
+          <Card title="Projetos ativos" value={projects.length} subtext="Itens em andamento" badge="Workflow" />
+          <Card title="Saldo financeiro" value={`R$ ${financialBalance.toFixed(2)}`} subtext="Fluxo pessoal" badge="Financeiro" />
         </div>
       </div>
 

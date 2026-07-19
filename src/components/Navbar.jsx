@@ -15,7 +15,7 @@ const links = [
   { href: '/diario', label: 'Diário', icon: '🪶' }
 ];
 
-export default function Navbar({ theme, toggleTheme }) {
+export default function Navbar({ theme, toggleTheme, user, signIn, signOutUser }) {
   return (
     <aside className="border-b border-white/10 bg-theme-surface text-theme-text md:border-r md:min-h-screen md:w-72 md:overflow-y-auto md:px-6 md:py-8 scrollbar-thin">
       <div className="max-w-[1400px] mx-auto px-4 py-5 md:px-0 md:py-0">
@@ -24,13 +24,32 @@ export default function Navbar({ theme, toggleTheme }) {
             <p className="text-sm uppercase tracking-[0.22em] text-theme-muted">Central de controle</p>
             <h1 className="mt-2 text-2xl font-semibold">Dashboard Pessoal</h1>
           </div>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="hidden rounded-full bg-white/5 px-4 py-2 text-sm font-semibold text-theme-text transition hover:bg-white/10 md:inline-flex"
-          >
-            {theme === 'dark' ? '🌞 Claro' : '🌙 Escuro'}
-          </button>
+          <div className="hidden md:flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="rounded-full bg-white/5 px-4 py-2 text-sm font-semibold text-theme-text transition hover:bg-white/10"
+            >
+              {theme === 'dark' ? '🌞 Claro' : '🌙 Escuro'}
+            </button>
+            {user ? (
+              <button
+                type="button"
+                onClick={signOutUser}
+                className="rounded-full bg-white/5 px-4 py-2 text-sm font-semibold text-theme-text transition hover:bg-white/10"
+              >
+                Sair
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={signIn}
+                className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-background transition hover:bg-blue-400"
+              >
+                Login Google
+              </button>
+            )}
+          </div>
         </div>
 
         <nav className="mt-6 flex flex-wrap gap-2 md:block md:space-y-3" aria-label="Navegação principal">
@@ -51,6 +70,26 @@ export default function Navbar({ theme, toggleTheme }) {
             </NavLink>
           ))}
         </nav>
+
+        <div className="mt-6 block md:hidden">
+          {user ? (
+            <button
+              type="button"
+              onClick={signOutUser}
+              className="w-full rounded-full bg-white/5 px-4 py-2 text-sm font-semibold text-theme-text transition hover:bg-white/10"
+            >
+              Sair
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={signIn}
+              className="w-full rounded-full bg-accent px-4 py-2 text-sm font-semibold text-background transition hover:bg-blue-400"
+            >
+              Login Google
+            </button>
+          )}
+        </div>
       </div>
     </aside>
   );

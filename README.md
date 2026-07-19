@@ -58,3 +58,26 @@ O site deve ser publicado em: `https://bluejaem.github.io/dashboard`
 ## Observações
 
 A configuração do GitHub Pages já está pronta no `package.json` com a homepage `https://bluejaem.github.io/dashboard`.
+
+## Sincronização remota com Firebase
+
+Para que os dados sejam compartilhados entre computador e celular, é preciso configurar o Firebase e usar autenticação Google.
+
+1. Crie um projeto no Firebase.
+2. Habilite Authentication > Sign-in method > Google.
+3. Crie um Firestore Database em modo de teste.
+4. Copie as credenciais do projeto.
+5. Crie um arquivo `.env` na raiz do projeto com estas variáveis:
+
+```env
+REACT_APP_FIREBASE_API_KEY=your_api_key
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+REACT_APP_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+REACT_APP_FIREBASE_APP_ID=your_app_id
+```
+
+6. Rode `npm install` e depois `npm start`.
+
+A sincronização será ativada automaticamente quando você fizer login com Google.
