@@ -10,7 +10,8 @@ const links = [
   { href: '/livros', label: 'Livros' },
   { href: '/certificacoes', label: 'Certificações' },
   { href: '/metas', label: 'Metas' },
-  { href: '/diario', label: 'Diário' }
+  { href: '/diario', label: 'Diário' },
+  { href: '/perfil', label: 'Perfil' }
 ];
 
 export default function Navbar({ theme, toggleTheme, user, signOutUser }) {

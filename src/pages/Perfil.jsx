@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useAuth } from '../hooks/useAuth';
 
 const initialProfile = {
   name: 'Seu nome',
@@ -8,11 +10,21 @@ const initialProfile = {
   skills: 'React, Tailwind, JavaScript, Gestão de projetos',
   email: '',
   linkedin: '',
-  phone: ''
+  github: '',
+  phone: '',
+  website: '',
+  location: ''
 };
 
 export default function Perfil() {
+  const { user } = useAuth();
   const [profile, setProfile] = useLocalStorage('profileData', initialProfile);
+
+  useEffect(() => {
+    if (user?.email && !profile.email) {
+      setProfile((prev) => ({ ...prev, email: user.email }));
+    }
+  }, [user, profile.email, setProfile]);
 
   const updateProfile = (key, value) => {
     setProfile((prev) => ({ ...prev, [key]: value }));
