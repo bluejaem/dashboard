@@ -42,7 +42,9 @@ html, body, #root {
 
 body {
   margin: 0;
-  background: var(--theme-background);
+  background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 18%),
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.08), transparent 20%),
+    linear-gradient(180deg, #0b1120 0%, var(--theme-background) 100%);
   color: var(--theme-text);
 }
 

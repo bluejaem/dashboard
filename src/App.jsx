@@ -19,7 +19,11 @@ import { useAuth } from './hooks/useAuth';
 
 function App() {
   const [theme, setTheme] = useState('dark');
-  const { user, authLoading, signIn, signOutUser, isFirebaseConfigured } = useAuth();
+  const { user, authLoading, authError, signIn, signUp, signOutUser, isFirebaseConfigured } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [authMessage, setAuthMessage] = useState('');
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem('themePreference');
@@ -36,27 +40,84 @@ function App() {
 
   const needsLogin = isFirebaseConfigured && !user;
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setAuthMessage('');
+    try {
+      if (isRegistering) {
+        await signUp(email, password);
+        setAuthMessage('Conta criada com sucesso. Você está logado.');
+      } else {
+        await signIn(email, password);
+        setAuthMessage('Login realizado com sucesso.');
+      }
+      setPassword('');
+    } catch (error) {
+      setAuthMessage(error.message || 'Erro na autenticação.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-theme-background text-theme-text transition-colors duration-300">
       <Router basename={process.env.PUBLIC_URL}>
-        <div className="max-w-[1400px] mx-auto grid min-h-screen md:grid-cols-[280px_minmax(0,1fr)]">
-          <Navbar theme={theme} toggleTheme={toggleTheme} user={user} signIn={signIn} signOutUser={signOutUser} />
-          <main className="px-4 py-6 md:px-6">
+        <div className="mx-auto max-w-[1600px]">
+          <Navbar theme={theme} toggleTheme={toggleTheme} user={user} signOutUser={signOutUser} />
+          <main className="px-4 py-6 md:px-8 lg:px-10">
             <div className="page-fade">
               {authLoading ? (
                 <div className="rounded-3xl border border-white/10 bg-surface p-6 text-slate-300">Carregando autenticação...</div>
               ) : needsLogin ? (
-                <section className="rounded-3xl border border-white/10 bg-surface p-8 text-center text-slate-200">
+                <section className="mx-auto max-w-xl rounded-[2rem] border border-white/10 bg-theme-surface p-8 shadow-[0_30px_80px_rgba(0,0,0,0.18)]">
                   <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Acesso remoto</p>
-                  <h2 className="mt-4 text-2xl font-semibold text-white">Faça login para sincronizar seus dados</h2>
-                  <p className="mt-2 text-slate-400">Use sua conta Google para acessar os mesmos dados no computador e no celular.</p>
-                  <button
-                    type="button"
-                    onClick={signIn}
-                    className="mt-6 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-background transition hover:bg-blue-400"
-                  >
-                    Entrar com Google
-                  </button>
+                  <h2 className="mt-4 text-3xl font-semibold text-white">Entre com seu email e senha</h2>
+                  <p className="mt-2 text-slate-400">Use um email válido para salvar suas alterações no banco e acessar seus dados em qualquer dispositivo.</p>
+
+                  <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+                    <div>
+                      <label className="text-sm uppercase tracking-[0.16em] text-slate-400">Email</label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        required
+                        className="mt-2 w-full rounded-3xl border border-white/10 bg-[#111827] px-4 py-3 text-white outline-none focus:border-accent"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm uppercase tracking-[0.16em] text-slate-400">Senha</label>
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        required
+                        className="mt-2 w-full rounded-3xl border border-white/10 bg-[#111827] px-4 py-3 text-white outline-none focus:border-accent"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <button
+                        type="submit"
+                        className="rounded-full bg-accent px-6 py-3 text-sm font-semibold text-background transition hover:bg-blue-400"
+                      >
+                        {isRegistering ? 'Criar conta' : 'Entrar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsRegistering((current) => !current);
+                          setAuthMessage('');
+                        }}
+                        className="rounded-full border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/10"
+                      >
+                        {isRegistering ? 'Já tenho conta' : 'Criar nova conta'}
+                      </button>
+                    </div>
+                  </form>
+
+                  {(authMessage || authError) && (
+                    <div className="mt-6 rounded-3xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-100">
+                      {authError?.message || authMessage}
+                    </div>
+                  )}
                 </section>
               ) : (
                 <Routes>
