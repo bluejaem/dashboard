@@ -42,9 +42,15 @@ export default function Dashboard() {
   const safeDashboard = {
     ...initialDashboard,
     ...dashboard,
-    weeklyProductivity: dashboard?.weeklyProductivity ?? initialDashboard.weeklyProductivity,
-    studyHours: dashboard?.studyHours ?? initialDashboard.studyHours,
-    goalProgress: dashboard?.goalProgress ?? initialDashboard.goalProgress
+    weeklyProductivity: Array.isArray(dashboard?.weeklyProductivity)
+      ? dashboard.weeklyProductivity
+      : initialDashboard.weeklyProductivity,
+    studyHours: Array.isArray(dashboard?.studyHours)
+      ? dashboard.studyHours
+      : initialDashboard.studyHours,
+    goalProgress: Array.isArray(dashboard?.goalProgress)
+      ? dashboard.goalProgress
+      : initialDashboard.goalProgress
   };
   const [schedule] = useLocalStorage('agendaDiaria', []);
   const [books] = useLocalStorage('livros', []);
