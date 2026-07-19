@@ -1,17 +1,28 @@
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 const days = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
-const categories = ['Estudo', 'Projetos', 'Certificação', 'Pausa', 'Cursos'];
+const categories = ['Trabalho', 'Estudo', 'Revisão', 'Descanso', 'Ônibus', 'Pausa'];
 
 const categoryStyles = {
+  Trabalho: 'from-amber-700 to-amber-500',
   Estudo: 'from-cyan-700 to-cyan-500',
-  Projetos: 'from-sky-700 to-sky-500',
-  Certificação: 'from-emerald-700 to-emerald-500',
-  Pausa: 'from-amber-700 to-amber-500',
-  Cursos: 'from-violet-700 to-violet-500'
+  Revisão: 'from-emerald-700 to-emerald-500',
+  Descanso: 'from-violet-700 to-violet-500',
+  Ônibus: 'from-slate-700 to-slate-500',
+  Pausa: 'from-rose-700 to-rose-500'
 };
 
-const blankAssignment = { day: 'Seg', title: '', category: 'Estudo' };
+const blankAssignment = { day: 'Seg', time: '20:00-21:00', title: '', category: 'Estudo' };
+
+const sampleRoutine = [
+  { day: 'Seg', time: '20:00-20:30', title: 'Revisão UNINTER - Engenharia', category: 'Estudo' },
+  { day: 'Ter', time: '20:00-20:30', title: 'Resumo ADS ETEP', category: 'Estudo' },
+  { day: 'Qua', time: '20:00-20:30', title: 'Revisão GTI Estácio', category: 'Estudo' },
+  { day: 'Qui', time: '20:00-20:30', title: 'Planejamento e revisão leve', category: 'Revisão' },
+  { day: 'Sex', time: '20:00-21:00', title: 'Descanso ou leitura leve', category: 'Descanso' },
+  { day: 'Sab', time: '09:00-11:00', title: 'Estudo profundo', category: 'Estudo' },
+  { day: 'Dom', time: '14:00-16:00', title: 'Organizar semana e revisar', category: 'Revisão' }
+];
 
 export default function AgendaSemanal() {
   const [assignments, setAssignments] = useLocalStorage('agendaSemanal', []);
@@ -28,8 +39,9 @@ export default function AgendaSemanal() {
       <div className="rounded-3xl border border-white/10 bg-surface p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Agenda Semanal</p>
-            <h2 className="mt-2 text-2xl font-semibold text-white">Visão da semana</h2>
+            <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Rotina Semanal</p>
+            <h2 className="mt-2 text-2xl font-semibold text-white">Planejamento de estudo e descanso</h2>
+            <p className="mt-2 text-slate-400">Use este espaço para organizar seus horários de trabalho, deslocamento e estudo leve, mantendo descanso e recuperação nos fins de semana.</p>
           </div>
           <button
             type="button"
@@ -58,11 +70,11 @@ export default function AgendaSemanal() {
             <div className="mt-4 space-y-3">
               <div className="rounded-3xl bg-[#1F2937] p-4">
                 <p className="text-sm text-slate-300">Blocos agendados</p>
-                <p className="mt-2 text-xl font-semibold text-white">{assignments.length}</p>
+                <p className="mt-2 text-xl font-semibold text-white">{assignments.length || sampleRoutine.length}</p>
               </div>
               <div className="rounded-3xl bg-[#1F2937] p-4">
                 <p className="text-sm text-slate-300">Foco da semana</p>
-                <p className="mt-2 text-xl font-semibold text-white">Acompanhe sua rotina</p>
+                <p className="mt-2 text-xl font-semibold text-white">Estudo leve + descanso</p>
               </div>
             </div>
           </div>
@@ -70,9 +82,19 @@ export default function AgendaSemanal() {
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {assignments.length === 0 ? (
-            <div className="rounded-3xl bg-[#111827] p-6 text-center text-slate-300">
-              Nenhum bloco definido. Adicione uma atividade para a semana.
-            </div>
+            sampleRoutine.map((item, index) => (
+              <div key={index} className={`rounded-3xl border border-white/10 bg-gradient-to-br ${categoryStyles[item.category] || categoryStyles.Estudo} p-5 shadow-[0_18px_45px_rgba(0,0,0,0.18)]`}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-sm font-semibold text-white">{item.day}</span>
+                    <span className="text-sm text-slate-200">{item.time}</span>
+                  </div>
+                  <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-200">Exemplo</span>
+                </div>
+                <div className="mt-4 text-lg font-semibold text-white">{item.title}</div>
+                <div className="mt-3 rounded-2xl bg-black/20 px-3 py-2 text-sm text-slate-200">{item.category}</div>
+              </div>
+            ))
           ) : (
             assignments.map((item, index) => (
               <div key={index} className={`rounded-3xl border border-white/10 bg-gradient-to-br ${categoryStyles[item.category] || categoryStyles.Estudo} p-5 shadow-[0_18px_45px_rgba(0,0,0,0.18)]`}>

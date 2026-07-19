@@ -12,7 +12,6 @@ import Financeiro from './pages/Financeiro';
 import Certificacoes from './pages/Certificacoes';
 import Metas from './pages/Metas';
 import Diario from './pages/Diario';
-import Carreira from './pages/Carreira';
 import Perfil from './pages/Perfil';
 import Conhecimento from './pages/Conhecimento';
 import NotFound from './pages/NotFound';
@@ -35,7 +34,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-theme-background text-theme-text transition-colors duration-300">
-      <Router>
+      <Router basename={process.env.PUBLIC_URL}>
         <div className="max-w-[1400px] mx-auto grid min-h-screen md:grid-cols-[280px_minmax(0,1fr)]">
           <Navbar theme={theme} toggleTheme={toggleTheme} />
           <main className="px-4 py-6 md:px-6">
@@ -52,7 +51,6 @@ function App() {
                 <Route path="/certificacoes" element={<Certificacoes />} />
                 <Route path="/metas" element={<Metas />} />
                 <Route path="/diario" element={<Diario />} />
-                <Route path="/carreira" element={<Carreira />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/conhecimento" element={<Conhecimento />} />
                 <Route path="*" element={<NotFound />} />
