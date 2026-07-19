@@ -39,11 +39,18 @@ export default function Dashboard() {
   const [goals] = useLocalStorage('metas', []);
   const [projects] = useLocalStorage('githubProjects', []);
   const [financeEntries] = useLocalStorage('financeEntries', []);
+  const safeDashboard = {
+    ...initialDashboard,
+    ...dashboard,
+    weeklyProductivity: dashboard?.weeklyProductivity ?? initialDashboard.weeklyProductivity,
+    studyHours: dashboard?.studyHours ?? initialDashboard.studyHours,
+    goalProgress: dashboard?.goalProgress ?? initialDashboard.goalProgress
+  };
   const [schedule] = useLocalStorage('agendaDiaria', []);
   const [books] = useLocalStorage('livros', []);
   const [certifications] = useLocalStorage('certifications', []);
 
-  const totalStudyHours = dashboard.studyHours.reduce((sum, value) => sum + Number(value || 0), 0);
+  const totalStudyHours = safeDashboard.studyHours.reduce((sum, value) => sum + Number(value || 0), 0);
   const completedBooks = books.filter((book) => Number(book.percent) >= 100).length;
   const totalBooks = Math.max(books.length, 12);
   const projectGoal = 50;
@@ -86,7 +93,7 @@ export default function Dashboard() {
     datasets: [
       {
         label: 'Produtividade semanal',
-        data: dashboard.weeklyProductivity,
+        data: safeDashboard.weeklyProductivity,
         borderColor: '#60A5FA',
         backgroundColor: 'rgba(96, 165, 250, 0.16)',
         tension: 0.35,
@@ -102,7 +109,7 @@ export default function Dashboard() {
     datasets: [
       {
         label: 'Horas de estudo',
-        data: dashboard.studyHours,
+        data: safeDashboard.studyHours,
         borderColor: '#38BDF8',
         backgroundColor: 'rgba(56, 189, 248, 0.18)',
         tension: 0.35,
